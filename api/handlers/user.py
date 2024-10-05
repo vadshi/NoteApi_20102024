@@ -11,7 +11,6 @@ def get_user_by_id(user_id):
 
 @app.route("/users")
 def get_users():
-    # users = UserModel.query.all()
     users = db.session.scalars(db.select(UserModel)).all()
     return users_schema.dump(users), 200
 

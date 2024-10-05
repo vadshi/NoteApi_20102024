@@ -20,7 +20,6 @@ def get_notes():
     # TODO: авторизованный пользователь получает только свои заметки и публичные заметки других пользователей
     user = multi_auth.current_user()
     notes = db.session.scalars(db.select(NoteModel)).all()
-    # notes = NoteModel.query.all()
     return notes_schema.dump(notes), 200
 
 
