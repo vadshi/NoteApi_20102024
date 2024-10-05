@@ -1,6 +1,5 @@
 from api import db
 from api.models.user import UserModel
-from datetime import datetime, timezone
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey
 

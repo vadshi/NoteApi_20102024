@@ -1,4 +1,4 @@
-from api import app, multi_auth, request
+from api import app, db, multi_auth, request
 from api.models.note import NoteModel
 from api.schemas.note import note_schema, notes_schema
 
@@ -10,7 +10,7 @@ def get_note_by_id(note_id):
     # TODO: авторизованный пользователь может получить только свою заметку или публичную заметку других пользователей
     #  Попытка получить чужую приватную заметку, возвращает ответ с кодом 403
     user = multi_auth.current_user()
-    note = NoteModel.query.get_or_404(note_id, f"Note with id={note_id} not found")
+    note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
     return note_schema.dump(note), 200
 
 
@@ -19,7 +19,8 @@ def get_note_by_id(note_id):
 def get_notes():
     # TODO: авторизованный пользователь получает только свои заметки и публичные заметки других пользователей
     user = multi_auth.current_user()
-    notes = NoteModel.query.all()
+    notes = db.session.scalars(db.select(NoteModel)).all()
+    # notes = NoteModel.query.all()
     return notes_schema.dump(notes), 200
 
 
@@ -28,7 +29,7 @@ def get_notes():
 def create_note():
     user = multi_auth.current_user()
     note_data = request.json
-    note = NoteModel(author_id=user.id, **note_data)
+    note = NoteModel(user_id=user.id, **note_data)
     note.save()
     return note_schema.dump(note), 201
 
@@ -39,7 +40,7 @@ def edit_note(note_id):
     # TODO: Пользователь может редактировать ТОЛЬКО свои заметки.
     #  Попытка редактировать чужую заметку, возвращает ответ с кодом 403
     author = multi_auth.current_user()
-    note = NoteModel.query.get_or_404(note_id, f"Note with id={note_id} not found")
+    note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
     note_data = request.json
     note.text = note_data["text"]
     note.private = note_data.get("private") or note.private
