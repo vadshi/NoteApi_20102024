@@ -1,17 +1,19 @@
 from api import db, Config
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import URLSafeSerializer, BadSignature
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship, WriteOnlyMapped
+from sqlalchemy import String
 from sqlalchemy.exc import IntegrityError
 
 
 class UserModel(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), unique=True)
-    password_hash = db.Column(db.String(128))
-    notes = db.relationship('NoteModel', backref='author', lazy='dynamic')
-    role = db.Column(db.String(32), nullable=False, server_default="simple_user", default="simple_user")
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(32), index=True, unique=True)
+    password_hash: Mapped[str] = mapped_column(String(128))
+    notes: WriteOnlyMapped['NoteModel'] = relationship(back_populates='author')
+    role: Mapped[str] = mapped_column(String(32), nullable=False, server_default="simple_user", default="simple_user")
 
     def __init__(self, username, password, role="simple_user"):
         self.username = username
