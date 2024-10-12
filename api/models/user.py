@@ -4,6 +4,7 @@ from itsdangerous import URLSafeSerializer, BadSignature
 from sqlalchemy.orm import Mapped, mapped_column, relationship, WriteOnlyMapped
 from sqlalchemy import String
 from sqlalchemy.exc import IntegrityError
+from api.models.note import NoteModel
 
 
 class UserModel(db.Model):
@@ -12,7 +13,7 @@ class UserModel(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(32), index=True, unique=True)
     password_hash: Mapped[str] = mapped_column(String(128))
-    notes: WriteOnlyMapped['NoteModel'] = relationship(back_populates='author')
+    notes: WriteOnlyMapped['NoteModel'] = relationship(lambda: NoteModel, back_populates='author', cascade="all, delete-orphan",passive_deletes=True)
     role: Mapped[str] = mapped_column(String(32), nullable=False, server_default="simple_user", default="simple_user")
 
     def __init__(self, username, password, role="simple_user"):
