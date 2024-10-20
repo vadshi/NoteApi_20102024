@@ -1,3 +1,4 @@
+from flask import jsonify
 from api import app, db, request, multi_auth
 from api.models.user import UserModel
 from api.schemas.user import user_schema, users_schema
@@ -20,6 +21,8 @@ def create_user():
     user_data = request.json
     user = UserModel(**user_data)
     # TODO: добавить обработчик на создание пользователя с неуникальным username
+    if db.session.scalars(db.select(UserModel).where(UserModel.username==user.username)).one_or_none():
+        return {"error": "User already exists."}, 409
     user.save()
     return user_schema.dump(user), 201
 
@@ -29,7 +32,8 @@ def create_user():
 def edit_user(user_id):
     user_data = request.json
     user = db.get_or_404(UserModel, user_id, description=f"Note with id={user_id} not found")
-    user.username = user_data["username"]
+    for key, value in user_data.items():
+        setattr(user, key, value)
     user.save()
     return user_schema.dump(user), 200
 
@@ -44,4 +48,6 @@ def delete_user(user_id):
     2. Удалить автора, вызвав метод delete()
     3. Вернуть сообщние об этом.
     """
-    raise NotImplemented("Метод не реализован")
+    user = db.get_or_404(UserModel, user_id, description=f"Note with id={user_id} not found")
+    user.delete()
+    return jsonify({"message": f"User with={user_id} has deleted."}), 200

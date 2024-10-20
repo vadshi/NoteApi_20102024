@@ -22,7 +22,6 @@ def get_note_by_id(note_id):
 def get_notes():
     # TODO: авторизованный пользователь получает только свои заметки и публичные заметки других пользователей
     user = multi_auth.current_user()
-    notes = db.session.scalars(db.select(NoteModel)).all()
     notes = db.session.scalars(db.select(NoteModel).where(or_(NoteModel.user_id==user.id, NoteModel.private==False))).all()
     return notes_schema.dump(notes), 200
 
@@ -44,17 +43,23 @@ def edit_note(note_id):
     #  Попытка редактировать чужую заметку, возвращает ответ с кодом 403
     author = multi_auth.current_user()
     note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
-    note_data = request.json
-    note.text = note_data.get("text") or note.text
-    note.private = note_data.get("private") or note.private
     if note.user_id == author.id:
+        note_data = request.json
+        note.text = note_data.get("text") or note.text
+        note.private = note_data.get("private") or note.private
         note.save()
         return note_schema.dump(note), 200
     abort(403, message="You can't edit this note.")
+
 
 @app.route("/notes/<int:note_id>", methods=["DELETE"])
 @multi_auth.login_required
 def delete_note(self, note_id):
     # TODO: Пользователь может удалять ТОЛЬКО свои заметки.
     #  Попытка удалить чужую заметку, возвращает ответ с кодом 403
-    raise NotImplemented("Метод не реализован")
+    author = multi_auth.current_user()
+    note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
+    if note.user_id == author.id:    
+        note.delete()
+        return {"message", f"Note with id={note_id} has deleted."}, 200
+    return {"error": "This note can't be deleted because it owned other person."}, 403
