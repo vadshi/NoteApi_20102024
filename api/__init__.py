@@ -60,8 +60,7 @@ basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth('Bearer')
 multi_auth = MultiAuth(basic_auth, token_auth)
 docs = FlaskApiSpec(app)
-babel = Babel(app)
-babel.init_app(app, default_locale="ru", locale_selector=get_locale)
+babel = Babel(app, locale_selector=get_locale)
 
 
 @app.errorhandler(404)
