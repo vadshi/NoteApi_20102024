@@ -7,6 +7,7 @@ from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth, MultiAuth
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
+from flasgger import Swagger
 
 
 @event.listens_for(Engine, "connect")
@@ -29,6 +30,7 @@ ma = Marshmallow(app)
 basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth('Bearer')
 multi_auth = MultiAuth(basic_auth, token_auth)
+swagger = Swagger(app)
 
 
 @app.errorhandler(404)

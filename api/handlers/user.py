@@ -6,12 +6,46 @@ from api.schemas.user import user_schema, users_schema
 
 @app.route("/users/<int:user_id>")
 def get_user_by_id(user_id):
+    """
+    Get User by id
+    ---
+    tags:
+        - Users
+    parameters:
+         - in: path
+           name: user_id
+           type: integer
+           required: true
+           default: 1
+
+    responses:
+        200:
+            description: A single user item
+            schema:
+                id: User
+                properties:
+                    id:
+                        type: integer
+                    username:
+                        type: string
+                    role:
+                        type: string
+        404:
+            description: User not found
+    """
+
     user = db.get_or_404(UserModel, user_id, description=f"Note with id={user_id} not found")
     return user_schema.dump(user), 200
 
 
 @app.route("/users")
 def get_users():
+    """
+    Get all Users
+    ---
+    tags:
+        - Users
+    """
     users = db.session.scalars(db.select(UserModel)).all()
     return users_schema.dump(users), 200
 
