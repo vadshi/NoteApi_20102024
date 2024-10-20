@@ -1,41 +1,16 @@
 from flask import jsonify
 from api import app, db, request, multi_auth
 from api.models.user import UserModel
-from api.schemas.user import user_schema, users_schema
+from api.schemas.user import user_schema, users_schema, UserSchema
+from flask_apispec  import doc, marshal_with, use_kwargs
 
 
 @app.route("/users/<int:user_id>")
+@doc(description='Api for getting only user.', tags=['Users'], summary="Get user by id")
+@marshal_with(UserSchema, code=200)
 def get_user_by_id(user_id):
-    """
-    Get User by id
-    ---
-    tags:
-        - Users
-    parameters:
-         - in: path
-           name: user_id
-           type: integer
-           required: true
-           default: 1
-
-    responses:
-        200:
-            description: A single user item
-            schema:
-                id: User
-                properties:
-                    id:
-                        type: integer
-                    username:
-                        type: string
-                    role:
-                        type: string
-        404:
-            description: User not found
-    """
-
     user = db.get_or_404(UserModel, user_id, description=f"User with id={user_id} not found")
-    return user_schema.dump(user), 200
+    return user, 200
 
 
 @app.route("/users")
