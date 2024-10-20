@@ -1,7 +1,8 @@
 from api import app, db, multi_auth, request
 from api.models.note import NoteModel
 from api.schemas.note import note_schema, notes_schema
-
+from flask import abort
+from sqlalchemy import or_
 
 
 @app.route("/notes/<int:note_id>", methods=["GET"])
@@ -11,7 +12,9 @@ def get_note_by_id(note_id):
     #  Попытка получить чужую приватную заметку, возвращает ответ с кодом 403
     user = multi_auth.current_user()
     note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
-    return note_schema.dump(note), 200
+    if note.user_id == user.id and not note.private:
+        return note_schema.dump(note), 200
+    abort(403, message="You can't get this note.")
 
 
 @app.route("/notes", methods=["GET"])
@@ -20,6 +23,7 @@ def get_notes():
     # TODO: авторизованный пользователь получает только свои заметки и публичные заметки других пользователей
     user = multi_auth.current_user()
     notes = db.session.scalars(db.select(NoteModel)).all()
+    notes = db.session.scalars(db.select(NoteModel).where(or_(NoteModel.user_id==user.id, NoteModel.private==False))).all()
     return notes_schema.dump(notes), 200
 
 
@@ -41,11 +45,12 @@ def edit_note(note_id):
     author = multi_auth.current_user()
     note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
     note_data = request.json
-    note.text = note_data["text"]
+    note.text = note_data.get("text") or note.text
     note.private = note_data.get("private") or note.private
-    note.save()
-    return note_schema.dump(note), 200
-
+    if note.user_id == author.id:
+        note.save()
+        return note_schema.dump(note), 200
+    abort(403, message="You can't edit this note.")
 
 @app.route("/notes/<int:note_id>", methods=["DELETE"])
 @multi_auth.login_required
