@@ -10,5 +10,6 @@ docs.register(user.delete_user)
 docs.register(user.get_users)
 
 
+
 if __name__ == '__main__':
     app.run(debug=Config.DEBUG, port=Config.PORT)

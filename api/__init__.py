@@ -7,10 +7,10 @@ from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth, MultiAuth
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.engine import Engine
 from sqlalchemy import event
-# from flasgger import Swagger
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
 from flask_apispec import FlaskApiSpec
+from flask_babel import Babel
 
 
 @event.listens_for(Engine, "connect")
@@ -22,6 +22,10 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 class Base(DeclarativeBase):
     pass
+
+def get_locale():
+    return request.accept_languages.best_match(["ru"])
+
 
 
 app = Flask(__name__)
@@ -55,8 +59,9 @@ ma = Marshmallow(app)
 basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth('Bearer')
 multi_auth = MultiAuth(basic_auth, token_auth)
-# swagger = Swagger(app)
 docs = FlaskApiSpec(app)
+babel = Babel(app)
+babel.init_app(app, default_locale="ru", locale_selector=get_locale)
 
 
 @app.errorhandler(404)

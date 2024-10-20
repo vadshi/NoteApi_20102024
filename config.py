@@ -10,4 +10,5 @@ class Config:
     DEBUG = True
     PORT = 5000
     SECRET_KEY = "My secret key =)"
+    LANGUAGES = ['ru', 'en']
 

@@ -3,14 +3,14 @@ from api import app, db, request, multi_auth
 from api.models.user import UserModel
 from api.schemas.user import UserEditSchema, user_schema, users_schema, UserSchema, UserRequestSchema
 from flask_apispec  import doc, marshal_with, use_kwargs
-
+from flask_babel import _
 
 @app.route("/users/<int:user_id>", provide_automatic_options=False)
 @doc(description='Api for getting only user.', tags=['Users'], summary="Get user by id")
 @doc(responses={"404": {"description": "User not found"}})
 @marshal_with(UserSchema, code=200)
 def get_user_by_id(user_id):
-    user = db.get_or_404(UserModel, user_id, description=f"User with id={user_id} not found")
+    user = db.get_or_404(UserModel, user_id, description=_("User with id=%(user_id)s not found", user_id=user_id))
     return user, 200
 
 
@@ -52,7 +52,7 @@ def edit_user(user_id, **kwargs):
 
 
 @app.route("/users/<int:user_id>", methods=["DELETE"], provide_automatic_options=False)
-@multi_auth.login_required(role="admin")
+# @multi_auth.login_required(role="admin")
 @doc(responses={"404": {"description": "User not found"}})
 @doc(description='Api to delete user.', tags=['Users'], summary="Delete user by id")
 @doc(security= [{"basicAuth": []}])
@@ -64,6 +64,6 @@ def delete_user(user_id):
     2. Удалить автора, вызвав метод delete()
     3. Вернуть сообщние об этом.
     """
-    user = db.get_or_404(UserModel, user_id, description=f"Note with id={user_id} not found")
+    user = db.get_or_404(UserModel, user_id, description=_("User with id=%(user_id)s not found.", user_id=user_id))
     user.delete()
-    return jsonify({"message": f"User with={user_id} has deleted."}), 200
+    return {"message": _("User with=%(user_id)s has deleted.", user_id=user_id)}
