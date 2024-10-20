@@ -12,9 +12,9 @@ def get_note_by_id(note_id):
     #  Попытка получить чужую приватную заметку, возвращает ответ с кодом 403
     user = multi_auth.current_user()
     note = db.get_or_404(NoteModel, note_id, description=f"Note with id={note_id} not found")
-    if note.user_id == user.id and not note.private:
+    if note.user_id == user.id or not note.private:
         return note_schema.dump(note), 200
-    abort(403, message="You can't get this note.")
+    abort(403, {"message": "You can't get this note."})
 
 
 @app.route("/notes", methods=["GET"])
@@ -49,7 +49,7 @@ def edit_note(note_id):
         note.private = note_data.get("private") or note.private
         note.save()
         return note_schema.dump(note), 200
-    abort(403, message="You can't edit this note.")
+    abort(403, {"message": "You can't edit this note."})
 
 
 @app.route("/notes/<int:note_id>", methods=["DELETE"])
