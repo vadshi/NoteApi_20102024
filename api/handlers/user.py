@@ -37,12 +37,13 @@ def create_user(**kwargs):
 
 
 @app.route("/users/<int:user_id>", methods=["PUT"], provide_automatic_options=False)
-# @multi_auth.login_required(role="admin")
+@multi_auth.login_required(role="admin")
+@doc(responses={"403": {"description": "User's role is not Unauthorized to make this action"}})
 @doc(description='Api to change user.', tags=['Users'], summary="Change user data by id")
+@doc(security= [{"basicAuth": []}])
 @use_kwargs(UserEditSchema, location='json')
 @marshal_with(UserSchema, code=200)
 def edit_user(user_id, **kwargs):
-    # user_data = request.json
     user = db.get_or_404(UserModel, user_id, description=f"Note with id={user_id} not found")
     for key, value in kwargs.items():
         setattr(user, key, value)
@@ -54,6 +55,7 @@ def edit_user(user_id, **kwargs):
 @multi_auth.login_required(role="admin")
 @doc(responses={"404": {"description": "User not found"}})
 @doc(description='Api to delete user.', tags=['Users'], summary="Delete user by id")
+@doc(security= [{"basicAuth": []}])
 def delete_user(user_id):
     """
     Пользователь может удалять ТОЛЬКО свои заметки

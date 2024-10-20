@@ -26,12 +26,21 @@ class Base(DeclarativeBase):
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+security_definitions = {
+   "basicAuth": {
+       "type": "basic"
+   }
+}
+
 app.config.update({
    'APISPEC_SPEC': APISpec(
-       title='Notes Project',
-       version='v1',
-       plugins=[MarshmallowPlugin()],
-       openapi_version='2.0'
+        title='Notes Project',
+        version='v1',
+        plugins=[MarshmallowPlugin()],
+        securityDefinitions=security_definitions,
+        security=[],
+        openapi_version='2.0'
    ),
    'APISPEC_SWAGGER_URL': '/swagger', # URI API Doc JSON
    'APISPEC_SWAGGER_UI_URL': '/swagger-ui'# URI UI of API Doc
