@@ -34,7 +34,7 @@ def get_user_by_id(user_id):
             description: User not found
     """
 
-    user = db.get_or_404(UserModel, user_id, description=f"Note with id={user_id} not found")
+    user = db.get_or_404(UserModel, user_id, description=f"User with id={user_id} not found")
     return user_schema.dump(user), 200
 
 
